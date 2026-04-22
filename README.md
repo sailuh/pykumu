@@ -10,7 +10,7 @@ Pykumu is forked from [cmu-phil/py-tetrad](https://github.com/cmu-phil/py-tetrad
 
 ## Installation
 
-Pykumu has been tested on macOS and Windows.
+Pykumu has been tested on macOS.
 
 ### 1. Prerequisites
 
