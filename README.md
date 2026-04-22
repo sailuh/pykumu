@@ -14,8 +14,8 @@ Pykumu has been tested on macOS.
 
 ### 1. Prerequisites
 
-- **Miniconda** — [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
-- **JDK 21** (Amazon Corretto 21 recommended) — [aws.amazon.com/corretto/](https://aws.amazon.com/corretto/)
+- **Install Miniconda** — [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+- **Install JDK 21** (Amazon Corretto 21 recommended) — [aws.amazon.com/corretto/](https://aws.amazon.com/corretto/)
 
 Verify `java -version` prints `21.x` and `JAVA_HOME` points at the JDK 21 install.
 
@@ -27,6 +27,7 @@ cd pykumu
 ```
 
 ### 3. Create the conda environment and install pykumu
+From repo root:
 
 ```bash
 conda env create -f env.yml
@@ -34,9 +35,9 @@ conda activate pykumu
 pip install -e .
 ```
 
-This installs every runtime dependency (`numpy`, `pandas`, `scipy`, `JPype1`, `python-igraph`, `pyvis`, `docopt`, `jupyterlab`) plus the `pykumu` console script.
+This installs every runtime dependency (`numpy`, `pandas`, `scipy`, `JPype1`, `python-igraph`, `pyvis`, `docopt`, `jupyterlab`).
 
-### 4. (Optional) Rebuild the documentation
+### 4. Rebuild the documentation
 
 ```bash
 make docs
