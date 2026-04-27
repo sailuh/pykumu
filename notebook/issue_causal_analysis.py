@@ -8,8 +8,8 @@
 # 
 # Install these first:
 # 
-# - **Miniconda** — [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
-# - **JDK 21** (Amazon Corretto 21) — [github.com/cmu-phil/tetrad/wiki/Setting-up-Java-for-Tetrad](https://github.com/cmu-phil/tetrad/wiki/Setting-up-Java-for-Tetrad)
+# - **Install Miniconda** — [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+# - **Install JDK 21+** (Amazon Corretto 21+ recommended) — [github.com/cmu-phil/tetrad/wiki/Setting-up-Java-for-Tetrad](https://github.com/cmu-phil/tetrad/wiki/Setting-up-Java-for-Tetrad)
 # 
 # Make sure `JAVA_HOME` points at the JDK 21 install and that `java -version` prints `21.x`.
 # 
@@ -92,6 +92,7 @@
 
 # %%
 # Start the JVM and load tetrad-current.jar, then import all required packages.
+import base64
 import os
 import sys
 import random
@@ -102,6 +103,7 @@ import numpy as np
 import igraph as ig
 from scipy.stats import rankdata, norm
 from pyvis.network import Network
+from IPython.display import HTML, display
 
 # Add repo root to path so we can import api
 _repo_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
@@ -785,7 +787,16 @@ def vis_igraph(nodes, edges, output_path, seed=1):
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     net.save_graph(output_path)
-    net.show(output_path)
+
+    # Embed inline so the graph travels with the notebook output
+    # (works in interactive Jupyter, in the make docs-notebook HTML export,
+    # and when the .ipynb is shared standalone)
+    with open(output_path) as f:
+        encoded = base64.b64encode(f.read().encode()).decode()
+    display(HTML(
+        f'<iframe src="data:text/html;base64,{encoded}" '
+        f'width="100%" height="700" frameborder="0"></iframe>'
+    ))
 
 
 # %% [markdown]
