@@ -14,7 +14,7 @@ def bootstrapping(params, number_resampling=0, percent_resample_size=100, add_or
                       resampling_with_replacement=True, resampling_ensemble=1, seed=-1):
     """Configure bootstrapping parameters for causal search.
 
-    :param params: Tetrad Parameters object
+    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
     :param number_resampling: The number of bootstraps/resampling iterations (min = 0)
     :param percent_resample_size: The percentage of resample size (min = 10%)
     :param add_original_dataset: Yes, if adding the original dataset as another bootstrapping

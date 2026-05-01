@@ -36,10 +36,10 @@ def algorithm_fges(data, params, score, knowledge, symmetric_first_step=False, m
     including knowledge of temporal tiers.
     For more details, see: https://www.phil.cmu.edu/tetrad-javadocs/7.6.0/edu/cmu/tetrad/search/Fges.html
 
-    :param data: Tetrad data object
-    :param params: Tetrad Parameters object
-    :param score: Tetrad score object (e.g., from score.use_sem_bic)
-    :param knowledge: Tetrad Knowledge object
+    :param data: Tetrad data object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
+    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} (and configured by \code{\link{bootstrapping.bootstrapping}} and \code{\link{score.use_sem_bic}}).
+    :param score: Tetrad score object returned by \code{\link{score.use_sem_bic}}.
+    :param knowledge: Tetrad Knowledge object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} or replaced via \code{\link{knowledge.parse_knowledge_txt}}.
     :param symmetric_first_step: TRUE if the first step step for FGES should do scoring for both X->Y and Y->X
     :param max_degree: Integer. The maximum degree of the graph (min = -1)
         from different random starting permutations. The model with the most
@@ -93,10 +93,10 @@ def algorithm_boss(data, params, score, knowledge, num_starts=1, use_bes=False, 
     For more details, see: https://www.phil.cmu.edu/tetrad-javadocs/7.4.0/edu/cmu/tetrad/search/Boss.html
     and https://cmu-phil.github.io/tetrad/manual/#boss
 
-    :param data: Tetrad data object
-    :param params: Tetrad Parameters object
-    :param score: Tetrad score object (e.g., from score.use_sem_bic)
-    :param knowledge: Tetrad Knowledge object
+    :param data: Tetrad data object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
+    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} (and configured by \code{\link{bootstrapping.bootstrapping}} and \code{\link{score.use_sem_bic}}).
+    :param score: Tetrad score object returned by \code{\link{score.use_sem_bic}}.
+    :param knowledge: Tetrad Knowledge object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} or replaced via \code{\link{knowledge.parse_knowledge_txt}}.
     :param num_starts: Number of random starts
     :param use_bes: TRUE if the final BES (Backward Equivalence Search) step is
         used from the GES (Greedy Equivalence Search) algorithm.

@@ -17,8 +17,8 @@ import pandas as pd
 def transform_graph_java_to_graph_json(graph):
     """Convert a Tetrad graph object to a JSON string.
 
-    :param graph: Tetrad Java graph object (e.g., from algorithm.run_fges()['graph'])
-    :returns: JSON string representation of the graph
+    :param graph: Tetrad Java graph object returned by \code{\link{algorithm.algorithm_fges}} or \code{\link{algorithm.algorithm_boss}} (the 'graph' key of their result dict).
+    :returns: JSON string representation of the graph.
     """
     import edu.cmu.tetrad.graph.GraphSaveLoadUtils as gp
 

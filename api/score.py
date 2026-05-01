@@ -13,7 +13,7 @@ functions (e.g., SEM BIC) used by Tetrad search algorithms.
 def use_sem_bic(params, penalty_discount=2, sem_bic_structure_prior=0, sem_bic_rule=1, singularity_lambda=0.0):
     """Configure and return a SEM BIC score.
 
-    :param params: Tetrad Parameters object
+    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
     :param penalty_discount: Penalty discount (min = 0.0)
     :param sem_bic_structure_prior: Structure Prior for SEM BIC (default 0)
     :param sem_bic_rule: BIC rule selection (1 = default)
