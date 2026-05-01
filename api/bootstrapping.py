@@ -10,7 +10,7 @@ This module provides functions to configure bootstrapping (resampling)
 parameters on a Tetrad Parameters object.
 """
 
-def set_bootstrapping(params, number_resampling=0, percent_resample_size=100, add_original_dataset=True,
+def bootstrapping(params, number_resampling=0, percent_resample_size=100, add_original_dataset=True,
                       resampling_with_replacement=True, resampling_ensemble=1, seed=-1):
     """Configure bootstrapping parameters for causal search.
 

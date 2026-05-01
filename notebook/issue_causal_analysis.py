@@ -110,7 +110,7 @@ _repo_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
-from api import tetrad, data, score, bootstrapping, algorithm, graph, knowledge, translate
+from api import tetrad, data, score, bootstrapping, algorithm, graph, knowledge
 tetrad.start("resources/tetrad-current.jar")
 
 py_output_dir = "pykumu_outputs"

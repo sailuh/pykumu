@@ -11,13 +11,12 @@ using the Tetrad library via JPype. Each module exposes thin
 wrappers around Tetrad's Java classes:
 
 - `api.tetrad` -- start the JVM and load the Tetrad JAR
-- `api.data` -- load and prepare data for causal search
+- `api.data` -- convert pandas DataFrames into Tetrad data and initialize search state
 - `api.score` -- configure scoring functions (e.g., SEM BIC)
 - `api.bootstrapping` -- configure bootstrap resampling parameters
 - `api.knowledge` -- load domain knowledge constraints
 - `api.algorithm` -- run causal search algorithms (FGES, BOSS)
 - `api.graph` -- serialize and parse Tetrad graph objects, apply PNEF thresholds
-- `api.translate` -- convert between pandas and Tetrad data formats
 
 ## Usage
 
@@ -43,5 +42,4 @@ __all__ = [
     "graph",
     "knowledge",
     "score",
-    "translate",
 ]

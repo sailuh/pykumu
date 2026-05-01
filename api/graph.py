@@ -14,7 +14,7 @@ files into tabular DataFrames.
 import json
 
 import pandas as pd
-def get_json(graph):
+def transform_graph_java_to_graph_json(graph):
     """Convert a Tetrad graph object to a JSON string.
 
     :param graph: Tetrad Java graph object (e.g., from algorithm.run_fges()['graph'])
@@ -26,7 +26,7 @@ def get_json(graph):
 
 
 def convert_to_tetrad_gui_format(graph_json_str):
-    """Convert a PyKumu/newer Tetrad JSON graph string to the format Tetrad GUI can load.
+    """Convert a Tetrad JSON graph string to the format Tetrad GUI can load.
 
     The newer Tetrad library serializes nodeType as a string (e.g., "MEASURED"),
     while Tetrad GUI and causal-cmd expect it as an object (e.g., {"ordinal": 0}).
@@ -81,11 +81,42 @@ def convert_to_tetrad_gui_format(graph_json_str):
     return json.dumps(graph, indent=2)
 
 
-def parse_graph(graph_filepath):
+def parse_graph_json(graph_filepath):
     """Parse a Tetrad JSON graph file into nodes, edgeset, and edge_type_probabilities DataFrames.
 
-    :param graph_filepath: File path to a Tetrad JSON graph file
-    :returns: dict with 'nodes', 'edgeset', and 'edge_type_probabilities' DataFrames
+    In Tetrad, causal algorithms can output a graph as a result of a single run,
+    or multiple runs. When utilizing a single run, the "nodes" and "edgeset" will
+    contain the expected graph as an edgelist table and its nodes.
+
+    A graph output resulting from multiple runs can be obtained by using either
+    bootstrap or the restart flags. The bootstrap command, as the name implies,
+    performs multiple causal searches over samples of the full dataset. The
+    restart command, however, performs causal searches on the full dataset every
+    time with random initialization (requires random initialization flag).
+
+    If multiple runs are used, then the graph data generated in the JSON will
+    contain an additional field, "edgeTypeProbabilities", for every edge in
+    "edgeset". The "edgeTypeProbabilities" counts for a given edge in "edgeset",
+    the number of edges in a given direction and their properties, and/or the
+    absence of them of every run. The resulting "edgeset" is thus the ensemble
+    edge derived from the edgeset. For example, suppose across 1000 runs for
+    node1 and node2 we obtain 4 types of edges:
+
+      * ta:  properties = (pd, pl), probability: ~0.48
+      * at:  properties = (dd, nl), probability: ~0.37
+      * tt:  properties = (),       probability: ~0.13
+      * nil: properties = (),       probability: ~0.01
+
+    In such edgeTypeProbabilities for node1 and node2, the reported edgeset for
+    node1 and node2 is ta, the properties are (pd, pl) and the probability
+    0.48 + 0.37 + 0.13 ~= 0.98. Observe the final reported property for the
+    node1, node2 pair is thus the highest probability of the edgeset (assuming
+    ensemble preserved), however the probability is the sum of the individual
+    probabilities (except for the nil case, which were causal search runs which
+    resulted in no edges being formed).
+
+    :param graph_filepath: File path to a Tetrad JSON graph file.
+    :returns: dict with 'nodes', 'edgeset', and 'edge_type_probabilities' DataFrames.
     """
     with open(graph_filepath, 'r') as f:
         graph_json = json.load(f)

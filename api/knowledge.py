@@ -7,10 +7,10 @@
 """Domain knowledge loading for causal search.
 
 This module provides functions to load domain knowledge constraints
-(forbidden/required edges, temporal tiers) from files.
+(forbidden/required edges, temporal tiers) from a .txt file.
 """
 
-def load_knowledge(path):
+def parse_knowledge_txt(path):
     """Load domain knowledge constraints from a file.
 
     The knowledge file uses whitespace delimiters and '#' for comments.

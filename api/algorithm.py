@@ -10,7 +10,7 @@ This module provides functions for running causal search algorithms
 (FGES, BOSS) using the Tetrad library via JPype.
 """
 
-def run_fges(data, params, score, knowledge, symmetric_first_step=False, max_degree=-1,
+def algorithm_fges(data, params, score, knowledge, symmetric_first_step=False, max_degree=-1,
              parallelized=False, faithfulness_assumed=False, num_threads=5):
     """Implements the Fast Greedy Equivalence Search (FGES) algorithm.
 
@@ -72,7 +72,7 @@ def run_fges(data, params, score, knowledge, symmetric_first_step=False, max_deg
     return {"graph": graph, "bootstrap_graphs": bootstrap_graphs}
 
 
-def run_boss(data, params, score, knowledge, num_starts=1, use_bes=False, time_lag=0,
+def algorithm_boss(data, params, score, knowledge, num_starts=1, use_bes=False, time_lag=0,
              use_data_order=True, output_cpdag=True, num_threads=5):
     """Implements the BOSS (Best Order Score Search) algorithm.
 

@@ -18,7 +18,7 @@ import jpype
 import jpype.imports
 
 
-def start(jar_path, jvm_args=None):
+def tetrad_jvm_start(jar_path, jvm_args=None):
     """Start the JVM and load the Tetrad JAR.
 
     Must be called once before using any api module that accesses
