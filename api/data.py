@@ -10,6 +10,13 @@ This module converts pandas DataFrames into Tetrad-compatible Java data
 structures (BoxDataSet) and initializes the search state.
 """
 
+try:
+    import java.util as util
+    import edu.cmu.tetrad.data as td
+    from edu.cmu.tetrad.util import Parameters
+except ImportError:
+    pass  
+
 from pandas import DataFrame
 
 
@@ -25,9 +32,6 @@ def transform_pandasdf_to_tetrad_boxdataset(df: DataFrame, int_as_cont=False):
         than discrete.
     :returns: dict with 'data', 'params', and 'knowledge' keys.
     """
-    import java.util as util
-    import edu.cmu.tetrad.data as td
-    from edu.cmu.tetrad.util import Parameters
 
     dtypes = ["float16", "float32", "float64"]
     if int_as_cont:

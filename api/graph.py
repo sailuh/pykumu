@@ -11,13 +11,19 @@ into serializable formats (e.g., JSON) and parse Tetrad JSON graph
 files into tabular DataFrames.
 """
 
+try:
+    import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag as cpdag
+    from edu.cmu.tetrad.util import Params
+except ImportError:
+    pass  
+
 import json
 
 import pandas as pd
 def transform_graph_java_to_graph_json(graph):
     """Convert a Tetrad graph object to a JSON string.
 
-    :param graph: Tetrad Java graph object returned by \code{\link{algorithm.algorithm_fges}} or \code{\link{algorithm.algorithm_boss}} (the 'graph' key of their result dict).
+    :param graph: Tetrad Java graph object returned by [algorithm_fges](algorithm.html#algorithm_fges) or [algorithm.algorithm_boss](algorithm.html#algorithm_boss) (the `'graph'` key of their result dict).
     :returns: JSON string representation of the graph.
     """
     import edu.cmu.tetrad.graph.GraphSaveLoadUtils as gp
@@ -156,3 +162,26 @@ def parse_graph_json(graph_filepath):
     edge_type_probabilities = pd.DataFrame(etp_rows)
 
     return {"nodes": nodes, "edgeset": edgeset, "edge_type_probabilities": edge_type_probabilities}
+
+
+def find_cycles(g):
+    """Enumerate all simple directed cycles in an igraph graph.
+
+    Walks each vertex with positive in-degree and follows outgoing simple
+    paths back to the source, recording cycles whose smallest vertex index
+    is the start vertex (so each cycle is reported exactly once).
+
+    :param g: A directed `igraph.Graph` whose vertices have a `name` attribute.
+    :returns: List of cycles; each cycle is a list of vertex names in traversal order.
+    :references: https://stackoverflow.com/a/55094319/1260232
+    """
+    cycles = []
+    for v1 in g.vs:
+        if g.degree(v1, mode="in") == 0:
+            continue
+        for v2 in [n for n in g.neighbors(v1, mode="out") if n > v1.index]:
+            for path in g.get_all_simple_paths(v2, v1.index, mode="out"):
+                full = [v1.index] + path
+                if len(full) > 3 and min(full) == full[0]:
+                    cycles.append([g.vs[i]["name"] for i in full])
+    return cycles

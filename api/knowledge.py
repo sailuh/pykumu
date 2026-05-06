@@ -10,6 +10,12 @@ This module provides functions to load domain knowledge constraints
 (forbidden/required edges, temporal tiers) from a .txt file.
 """
 
+try:
+    import edu.cmu.tetrad.data as td
+    import java.io as io
+except ImportError:
+    pass  
+
 def parse_knowledge_txt(path):
     """Load domain knowledge constraints from a file.
 
@@ -19,8 +25,6 @@ def parse_knowledge_txt(path):
     :param path: File path to the knowledge file
     :returns: Tetrad Knowledge object
     """
-    import edu.cmu.tetrad.data as td
-    import java.io as io
 
     know_file = io.File(path)
     know_delim = td.DelimiterType.WHITESPACE

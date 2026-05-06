@@ -10,6 +10,12 @@ This module provides functions for running causal search algorithms
 (FGES, BOSS) using the Tetrad library via JPype.
 """
 
+try:
+    import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag as cpdag
+    from edu.cmu.tetrad.util import Params
+except ImportError:
+    pass  
+
 def algorithm_fges(data, params, score, knowledge, symmetric_first_step=False, max_degree=-1,
              parallelized=False, faithfulness_assumed=False, num_threads=5):
     """Implements the Fast Greedy Equivalence Search (FGES) algorithm.
@@ -36,10 +42,10 @@ def algorithm_fges(data, params, score, knowledge, symmetric_first_step=False, m
     including knowledge of temporal tiers.
     For more details, see: https://www.phil.cmu.edu/tetrad-javadocs/7.6.0/edu/cmu/tetrad/search/Fges.html
 
-    :param data: Tetrad data object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
-    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} (and configured by \code{\link{bootstrapping.bootstrapping}} and \code{\link{score.use_sem_bic}}).
-    :param score: Tetrad score object returned by \code{\link{score.use_sem_bic}}.
-    :param knowledge: Tetrad Knowledge object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} or replaced via \code{\link{knowledge.parse_knowledge_txt}}.
+    :param data: Tetrad data object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset).
+    :param params: Tetrad Parameters object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset) (and configured by [bootstrapping.bootstrapping](bootstrapping.html#bootstrapping) and [score.use_sem_bic](score.html#use_sem_bic)).
+    :param score: Tetrad score object returned by [score.use_sem_bic](score.html#use_sem_bic).
+    :param knowledge: Tetrad Knowledge object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset) or replaced via [knowledge.parse_knowledge_txt](knowledge.html#parse_knowledge_txt).
     :param symmetric_first_step: TRUE if the first step step for FGES should do scoring for both X->Y and Y->X
     :param max_degree: Integer. The maximum degree of the graph (min = -1)
         from different random starting permutations. The model with the most
@@ -54,8 +60,6 @@ def algorithm_fges(data, params, score, knowledge, symmetric_first_step=False, m
         learning high-dimensional graphical causal models, with an application to functional
         magnetic resonance images. International journal of data science and analytics, 3, 121-129.
     """
-    import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag as cpdag
-    from edu.cmu.tetrad.util import Params
 
     alg = cpdag.Fges(score)
     alg.setKnowledge(knowledge)
@@ -93,10 +97,10 @@ def algorithm_boss(data, params, score, knowledge, num_starts=1, use_bes=False, 
     For more details, see: https://www.phil.cmu.edu/tetrad-javadocs/7.4.0/edu/cmu/tetrad/search/Boss.html
     and https://cmu-phil.github.io/tetrad/manual/#boss
 
-    :param data: Tetrad data object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}}.
-    :param params: Tetrad Parameters object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} (and configured by \code{\link{bootstrapping.bootstrapping}} and \code{\link{score.use_sem_bic}}).
-    :param score: Tetrad score object returned by \code{\link{score.use_sem_bic}}.
-    :param knowledge: Tetrad Knowledge object returned by \code{\link{data.transform_pandasdf_to_tetrad_boxdataset}} or replaced via \code{\link{knowledge.parse_knowledge_txt}}.
+    :param data: Tetrad data object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset).
+    :param params: Tetrad Parameters object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset) (and configured by [bootstrapping.bootstrapping](bootstrapping.html#bootstrapping) and [score.use_sem_bic](score.html#use_sem_bic)).
+    :param score: Tetrad score object returned by [score.use_sem_bic](score.html#use_sem_bic).
+    :param knowledge: Tetrad Knowledge object returned by [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset) or replaced via [knowledge.parse_knowledge_txt](knowledge.html#parse_knowledge_txt).
     :param num_starts: Number of random starts
     :param use_bes: TRUE if the final BES (Backward Equivalence Search) step is
         used from the GES (Greedy Equivalence Search) algorithm.
@@ -119,8 +123,7 @@ def algorithm_boss(data, params, score, knowledge, num_starts=1, use_bes=False, 
     :references: Lam, W. Y., Andrews, B., & Ramsey, J. (2022, August). Greedy relaxations of
         the sparsest permutation algorithm. In Uncertainty in Artificial Intelligence (pp. 1052-1062). PMLR.
     """
-    import edu.cmu.tetrad.algcomparison.algorithm.oracle.cpdag as cpdag
-    from edu.cmu.tetrad.util import Params
+
 
     params.set(Params.USE_BES, use_bes)
     params.set(Params.NUM_STARTS, num_starts)
