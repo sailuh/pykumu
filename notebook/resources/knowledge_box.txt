@@ -1,4 +1,0 @@
-/knowledge
-addtemporal
-1 start mis_link silence code_dev file mail_dev thread commit churn
-2 mis_link2 silence2 code_dev2 file2 mail_dev2 thread2 commit2 churn2

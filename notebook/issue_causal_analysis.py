@@ -67,7 +67,7 @@
 # 
 # > ⚠️ In all three cases you must be in the `notebook/` directory (or have it as the working directory), otherwise the notebook can't find `resources/` or write to `pykumu_outputs/`.
 # 
-# > ⚠️ If the causal search runs fail or hang, make sure the `num_threads` parameter on `algorithm.run_boss` / `algorithm.run_fges` is set to `5`.
+# > ⚠️ If the causal search runs fail or hang, make sure the `num_threads` parameter on `algorithm.algorithm_boss` / `algorithm.algorithm_fges` is set to `5`.
 # 
 # ### 5. Verify Outputs
 # 
@@ -110,8 +110,9 @@ _repo_root = os.path.abspath(os.path.join(os.getcwd(), '..'))
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
-from api import tetrad, data, score, bootstrapping, algorithm, graph, knowledge
-tetrad.start("resources/tetrad-current.jar")
+from api import tetrad
+tetrad.tetrad_jvm_start("resources/tetrad-current.jar")
+from api import data, score, bootstrapping, algorithm, graph, knowledge
 
 py_output_dir = "pykumu_outputs"
 os.makedirs(py_output_dir, exist_ok=True)
@@ -123,7 +124,19 @@ os.makedirs(py_output_dir, exist_ok=True)
 
 # %%
 # dt = pd.read_csv("~/causal_tse/causal_modelling/1_openssl_social_smells_timeline.csv")
-dt = pd.read_csv("resources/null_variable_dt.csv")
+dt = pd.read_csv("resources/turnover-critical-vuln.csv")
+
+# %%
+cat_cols = ["package_id", "system_id", "window"]
+to_drop = [c for c in cat_cols if c in dt.columns]
+if to_drop:
+    dt = dt.drop(columns=to_drop)
+    print(f"Dropped categorical columns: {to_drop}")
+else:
+    print("Skipped categorical column subsetting (none of package_id, system_id, window found).")
+
+dt.to_csv(os.path.join(py_output_dir, "categorical_subset.csv"), index=False)
+
 
 # %% [markdown]
 # ## Feature Engineering
@@ -414,7 +427,8 @@ if not any(c.startswith("nv-") for c in lag_dt.columns):
     nv_lag_dt = nv_lag_dt.apply(lambda col: col.sample(frac=1).reset_index(drop=True))
     nv_lag_dt = pd.concat([binarized_lag_dt, nv_lag_dt], axis=1)
     print("Applied null variable features.")
-    nv_lag_dt[["silence", "nv-silence"]].head()
+    if "silence" in nv_lag_dt.columns and "nv-silence" in nv_lag_dt.columns:
+        nv_lag_dt[["silence", "nv-silence"]].head()
 else:
     nv_lag_dt = lag_dt.copy()
     print("Skipped null feature creation (nv- columns already present).")
@@ -433,9 +447,10 @@ if nv_lag_dt.shape[1] > 138:
 else:
     print(f"Skipped column trimming (already {nv_lag_dt.shape[1]} columns).")
 
-# Convert all columns to float so Tetrad treats them as continuous (required for SEM BIC)
-nv_lag_dt = nv_lag_dt.astype(float)
-binarized_lag_dt = binarized_lag_dt.astype(float)
+# Drop non-numeric columns (string identifiers) and convert to float so Tetrad
+# treats them as continuous (required for SEM BIC).
+nv_lag_dt = nv_lag_dt.select_dtypes(include="number").astype(float)
+binarized_lag_dt = binarized_lag_dt.select_dtypes(include="number").astype(float)
 print(f"Converted nv_lag_dt and binarized_lag_dt to float.")
 
 nv_lag_dt.to_csv(os.path.join(py_output_dir, "nv_lag_dt_final.csv"), index=False)
@@ -471,19 +486,19 @@ if eval_fges:
     filename = "fges_bootstrap_null_search_500_runs_nv_binary_indicators"
     filepath = os.path.join(output_folder_path, filename + "_graph.json")
 
-    state = data.load_continuous(nv_lag_dt)
+    state = data.transform_pandasdf_to_tetrad_boxdataset(nv_lag_dt)
     sem_bic = score.use_sem_bic(state["params"], penalty_discount=2, sem_bic_structure_prior=0, sem_bic_rule=1)
-    bootstrapping.set_bootstrapping(state["params"], number_resampling=500,
+    bootstrapping.bootstrapping(state["params"], number_resampling=500,
                                     percent_resample_size=90, seed=32,
                                     add_original_dataset=True, resampling_with_replacement=True,
                                     resampling_ensemble=1)
 
-    result = algorithm.run_fges(state["data"], state["params"], sem_bic, state["knowledge"],
+    result = algorithm.algorithm_fges(state["data"], state["params"], sem_bic, state["knowledge"],
                                 symmetric_first_step=True, max_degree=1000,
                                 faithfulness_assumed=True, parallelized=False)
 
     # Save graph as JSON
-    fges_null_graph_json = graph.get_json(result["graph"])
+    fges_null_graph_json = graph.transform_graph_java_to_graph_json(result["graph"])
     os.makedirs(output_folder_path, exist_ok=True)
     with open(filepath, 'w') as f:
         f.write(graph.convert_to_tetrad_gui_format(fges_null_graph_json))
@@ -507,19 +522,19 @@ if eval_boss:
     filename = "boss_bootstrap_null_search_1000_runs_nv_binary_indicators"
     filepath = os.path.join(output_folder_path, filename + "_graph.json")
 
-    state = data.load_continuous(nv_lag_dt)
+    state = data.transform_pandasdf_to_tetrad_boxdataset(nv_lag_dt)
     sem_bic = score.use_sem_bic(state["params"], penalty_discount=2, sem_bic_structure_prior=0, sem_bic_rule=1)
-    bootstrapping.set_bootstrapping(state["params"], number_resampling=1000,
+    bootstrapping.bootstrapping(state["params"], number_resampling=1000,
                                     percent_resample_size=100, seed=32,
                                     add_original_dataset=True, resampling_with_replacement=True,
                                     resampling_ensemble=1)
 
-    result = algorithm.run_boss(state["data"], state["params"], sem_bic, state["knowledge"],
+    result = algorithm.algorithm_boss(state["data"], state["params"], sem_bic, state["knowledge"],
                                 num_starts=1, use_bes=False, time_lag=0,
                                 use_data_order=True)
 
     # Save graph as JSON
-    boss_null_graph_json = graph.get_json(result["graph"])
+    boss_null_graph_json = graph.transform_graph_java_to_graph_json(result["graph"])
     os.makedirs(output_folder_path, exist_ok=True)
     with open(filepath, 'w') as f:
         f.write(graph.convert_to_tetrad_gui_format(boss_null_graph_json))
@@ -544,7 +559,7 @@ if eval_boss:
 # 
 
 # %%
-parsed_graph = graph.parse_graph(filepath)
+parsed_graph = graph.parse_graph_json(filepath)
 parsed_graph["nodes"].head()
 
 parsed_graph["nodes"].to_csv(os.path.join(py_output_dir, "null_search_nodes.csv"), index=False)
@@ -619,7 +634,7 @@ with open(os.path.join(py_output_dir, "pnef_1.txt"), "w") as f:
 
 # %%
 #knowledge_file_path = os.path.expanduser("~/Downloads/knowledge_2.txt")
-knowledge_file_path = ("resources/knowledge_box.txt")  
+knowledge_file_path = ("resources/turnover_knowledge.txt")  
 
 # %% [markdown]
 # ### Causal Search
@@ -642,20 +657,20 @@ if eval_fges_domain:
     filename = "fges_bootstrap_binarized_search_500_runs_binary_indicators"
     filepath = os.path.join(output_folder_path, filename + "_graph.json")
 
-    state = data.load_continuous(binarized_lag_dt)
-    state["knowledge"] = knowledge.load_knowledge(knowledge_file_path)
+    state = data.transform_pandasdf_to_tetrad_boxdataset(binarized_lag_dt)
+    state["knowledge"] = knowledge.parse_knowledge_txt(knowledge_file_path)
     sem_bic = score.use_sem_bic(state["params"], penalty_discount=2, sem_bic_structure_prior=0, sem_bic_rule=1)
-    bootstrapping.set_bootstrapping(state["params"], number_resampling=500,
+    bootstrapping.bootstrapping(state["params"], number_resampling=500,
                                     percent_resample_size=90, seed=32,
                                     add_original_dataset=True, resampling_with_replacement=True,
                                     resampling_ensemble=1)
 
-    result = algorithm.run_fges(state["data"], state["params"], sem_bic, state["knowledge"],
+    result = algorithm.algorithm_fges(state["data"], state["params"], sem_bic, state["knowledge"],
                                 symmetric_first_step=True, max_degree=1000,
                                 faithfulness_assumed=True, parallelized=False)
 
     # Save graph as JSON
-    fges_domain_graph_json = graph.get_json(result["graph"])
+    fges_domain_graph_json = graph.transform_graph_java_to_graph_json(result["graph"])
     os.makedirs(output_folder_path, exist_ok=True)
     with open(filepath, 'w') as f:
         f.write(graph.convert_to_tetrad_gui_format(fges_domain_graph_json))
@@ -677,20 +692,20 @@ if eval_boss_domain:
     filename = "boss_bootstrap_binarized_search_1000_runs_binary_indicators"
     filepath = os.path.join(output_folder_path, filename + "_graph.json")
 
-    state = data.load_continuous(binarized_lag_dt)
-    state["knowledge"] = knowledge.load_knowledge(knowledge_file_path)
+    state = data.transform_pandasdf_to_tetrad_boxdataset(binarized_lag_dt)
+    state["knowledge"] = knowledge.parse_knowledge_txt(knowledge_file_path)
     sem_bic = score.use_sem_bic(state["params"], penalty_discount=2, sem_bic_structure_prior=0, sem_bic_rule=1)
-    bootstrapping.set_bootstrapping(state["params"], number_resampling=1000,
+    bootstrapping.bootstrapping(state["params"], number_resampling=1000,
                                     percent_resample_size=100, seed=32,
                                     add_original_dataset=True, resampling_with_replacement=True,
                                     resampling_ensemble=1)
 
-    result = algorithm.run_boss(state["data"], state["params"], sem_bic, state["knowledge"],
+    result = algorithm.algorithm_boss(state["data"], state["params"], sem_bic, state["knowledge"],
                                 num_starts=1, use_bes=False, time_lag=0,
                                 use_data_order=True, num_threads=5)
 
     # Save graph as JSON
-    boss_domain_graph_json = graph.get_json(result["graph"])
+    boss_domain_graph_json = graph.transform_graph_java_to_graph_json(result["graph"])
     os.makedirs(output_folder_path, exist_ok=True)
     with open(filepath, 'w') as f:
         f.write(graph.convert_to_tetrad_gui_format(boss_domain_graph_json))
@@ -707,7 +722,7 @@ if eval_boss_domain:
 # 
 
 # %%
-parsed_graph = graph.parse_graph(filepath)
+parsed_graph = graph.parse_graph_json(filepath)
 print("Nodes:")
 print(parsed_graph["nodes"].head())
 print("\nEdgeset:")
@@ -746,20 +761,6 @@ Blue2DarkRed12Steps = [
     "#290AD8", "#264DFF", "#3FA0FF", "#72D9FF", "#AAF7FF", "#E0FFFF",
     "#FFFFBF", "#FFE099", "#FFAD72", "#F76D5E", "#D82632", "#A50021",
 ]
-
-
-# Reference: https://stackoverflow.com/a/55094319/1260232
-def find_cycles(g):
-    cycles = []
-    for v1 in g.vs:
-        if g.degree(v1, mode="in") == 0:
-            continue
-        for v2 in [n for n in g.neighbors(v1, mode="out") if n > v1.index]:
-            for path in g.get_all_simple_paths(v2, v1.index, mode="out"):
-                full = [v1.index] + path
-                if len(full) > 3 and min(full) == full[0]:
-                    cycles.append([g.vs[i]["name"] for i in full])
-    return cycles
 
 
 # Python equivalent of R's visIgraph(g, randomSeed=1) %>% visOptions %>% visInteraction.
@@ -846,7 +847,6 @@ nodes_n.loc[nodes_n['node'].isin(['commit',   'commit2']),   'color'] = Blue2Dar
 
 vis_igraph(nodes_n, edges_n, "causal_graph/causal_graph_subgraph.html")
 
-
 # %%
 names = sorted(set(edges['from']) | set(edges['to']))
 idx = {n: i for i, n in enumerate(names)}
@@ -855,7 +855,7 @@ g = ig.Graph(n=len(names),
              directed=True)
 g.vs["name"] = names
 
-find_cycles(g)
+graph.find_cycles(g)
 
 
 
