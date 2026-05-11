@@ -16,6 +16,7 @@ Pykumu has been tested on macOS.
 
 - **Install Miniconda** — [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
 - **Install JDK 21** (Amazon Corretto 21 recommended) — [aws.amazon.com/corretto/](https://aws.amazon.com/corretto/)
+- **Verify the Tetrad JAR** — confirm that `notebook/resources/tetrad-current.jar` is the latest version. The current latest jar file can be downloaded from [https://github.com/cmu-phil/py-tetrad/tree/main/pytetrad/resources](https://github.com/cmu-phil/py-tetrad/tree/main/pytetrad/resources); replace the file in `notebook/resources/` if it is out of date.
 
 Verify `java -version` prints `21.x` and `JAVA_HOME` points at the JDK 21 install.
 
