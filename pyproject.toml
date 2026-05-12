@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pykumu"
+version = "0.0.0.9000"
+description = "Pykumu is a Python package to facilitate causal analysis"
+readme = "README.md"
+license = "MPL-2.0"
+requires-python = ">=3.11"
+authors = [
+    { name = "Carlos Paradis", email = "cvas@hawaii.edu" },
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "JPype1",
+    "docopt",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pdoc",
+    "jupyterlab",
+    "ipykernel",
+]
+
+[project.urls]
+Homepage = "https://github.com/sailuh/pykumu"
+Documentation = "https://phuong808.github.io/pykumu"
+Issues = "https://github.com/sailuh/pykumu/issues"
+
+[tool.setuptools.packages.find]
+include = ["api*"]
