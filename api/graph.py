@@ -232,23 +232,33 @@ def find_cycles_in_edgeset(edgeset):
     g = ig.Graph.TupleList(directed, directed=True)
     return find_cycles(g)
 
-def markov_check(data, params, test, graph, parallelized=True):
+def markov_check(data, params, test, graph, knowledge=None, fraction_resample=1.0,
+                 find_smallest_subset=False, condition_set_type="ORDERED_LOCAL_MARKOV",
+                 parallelized=True):
     """Check whether a causal graph fits the data using Tetrad's Markov checker.
 
     :param data: Tetrad data object from [transform_pandasdf_to_tetrad_boxdataset](data.html#transform_pandasdf_to_tetrad_boxdataset).
     :param params: Tetrad Parameters object from the same function.
     :param test: Independence test from [use_fisher_z](independence.html#use_fisher_z).
     :param graph: Causal graph from [algorithm_fges](algorithm.html#algorithm_fges) or [algorithm_boss](algorithm.html#algorithm_boss).
+    :param knowledge: Tetrad Knowledge (tiers), the same one used for the search. None = no rules.
+    :param fraction_resample: Part of the data to use, from 0 to 1. 1.0 = all the data.
+    :param find_smallest_subset: True to try smaller conditioning sets for each test.
+    :param condition_set_type: Name of the Tetrad ConditioningSetType, e.g. `"ORDERED_LOCAL_MARKOV"` or `"LOCAL_MARKOV"`.
     :param parallelized: True to run the tests in parallel.
     :returns: dict with `'summary'` (summary statistics) and `'results'` (one row per test).
         `summary['fraction_dependent_independent']` is the share of the graph's
         predictions the data contradicts (lower is better).
     """
     import edu.cmu.tetrad.search as ts
-
-    mc = ts.MarkovCheck(graph, test.getTest(data, params), ts.ConditioningSetType.ORDERED_LOCAL_MARKOV)
+    set_type = getattr(ts.ConditioningSetType, condition_set_type)  # text -> Tetrad option
+    mc = ts.MarkovCheck(graph, test.getTest(data, params), set_type)
     mc.setParallelized(parallelized)
-    mc.generateAllResults()
+    mc.setFractionResample(fraction_resample)          # 1.0 = use all the data
+    mc.setFindSmallestSubset(find_smallest_subset)     # py-tetrad calls this removeExtraneous
+    if knowledge is not None:
+        mc.setKnowledge(knowledge)                     # same tiers as the search
+    mc.generateAllResults()                            # run AFTER all the settings
 
     summary = {
         "num_tests_independent": int(mc.getNumTests(True)),
@@ -266,5 +276,4 @@ def markov_check(data, params, test, graph, parallelized=True):
             r = results.get(i)
             rows.append({"fact": str(r.getFact()), "p_value": float(r.getPValue()),
                          "implied_independent": implied_independent})
-
     return {"summary": summary, "results": pd.DataFrame(rows)}

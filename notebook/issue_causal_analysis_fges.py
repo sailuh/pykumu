@@ -900,17 +900,8 @@ def vis_igraph(nodes, edges, output_path, seed=1):
 # ### Markov Check
 # 
 # We check whether the final causal graph fits the data
-
-# In[ ]:
-
-
-test = independence.use_fisher_z(state["params"], alpha=0.01)
-mc = graph.markov_check(state["data"], state["params"], test, result["graph"])
-display(pd.Series(mc["summary"], name="value").to_frame())
-mc["results"].head()
-
-
-# ### How to Read the Markov Check
+# 
+# **How to Read the Markov Check**
 # 
 # The Markov check tests whether the causal graph fits the data. The graph makes predictions about which variables should be unrelated, and the Markov checker tests each prediction against the data.
 # 
@@ -925,6 +916,34 @@ mc["results"].head()
 # - `fact`: the prediction. `A _||_ B` means "A and B are unrelated," and `A _||_ B | C` means "A and B are unrelated once you know C."
 # - `p_value`: below 0.01 means the data says they *are* related, so the prediction was wrong. Above 0.01 means the data agrees.
 # - `implied_independent`: `True` means it is an "unrelated" prediction.
+
+# In[ ]:
+
+
+test = independence.use_fisher_z(state["params"], alpha=0.01)
+mc = graph.markov_check(state["data"], state["params"], test, result["graph"])
+display(pd.Series(mc["summary"], name="value").to_frame())
+mc["results"].head()
+
+
+# In[ ]:
+
+
+options = {
+    "default": {},
+    "fraction_resample=0.5": {"fraction_resample": 0.5},
+    "LOCAL_MARKOV": {"condition_set_type": "LOCAL_MARKOV"},
+    "find_smallest_subset": {"find_smallest_subset": True},
+    "knowledge": {"knowledge": state["knowledge"]},
+}
+
+rows = {}
+for name, kwargs in options.items():
+    mc = graph.markov_check(state["data"], state["params"], test, result["graph"], **kwargs)
+    rows[name] = mc["summary"]
+
+pd.DataFrame(rows).T
+
 
 # ### Full Causal Graph 1-PNEF Trimmed 
 # 

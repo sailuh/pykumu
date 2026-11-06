@@ -93,7 +93,7 @@
 
 # ## 2. Introduction
 
-# In[ ]:
+# In[2]:
 
 
 # Start the JVM and load tetrad-current.jar, then import all required packages.
@@ -132,7 +132,7 @@ os.makedirs(py_output_dir, exist_ok=True)
 # 
 # Use the configuration file to specify the necessary data inputs and causal model parameters for a given project. 
 
-# In[ ]:
+# In[3]:
 
 
 # dt = pd.read_csv("~/causal_tse/causal_modelling/1_openssl_social_smells_timeline.csv")
@@ -146,7 +146,7 @@ data_filepath
 
 # The following is a sample of the data that will be used for causal analysis:
 
-# In[ ]:
+# In[4]:
 
 
 #dt = pd.read_csv("resources/null_variable_dt.csv")
@@ -165,7 +165,7 @@ dt.head()
 # We concatenate the last two digits of the year with the last four digits of the cve_id and convert into an integer. (E.g. 2006 and CVE ID XXX4339 becomes 06339).
 # 
 
-# In[ ]:
+# In[5]:
 
 
 if 'cve_id' in dt.columns:
@@ -176,7 +176,7 @@ else:
     print("Skipped cve_id transformation (column missing or already numeric).")
 
 
-# In[ ]:
+# In[6]:
 
 
 dt.head()
@@ -184,7 +184,7 @@ dt.head()
 
 # Second, commit interval is transformed into `activity_0` and `activity_2` if the commit hash is missing or available respectively:
 
-# In[ ]:
+# In[7]:
 
 
 if 'commit_interval' in dt.columns:
@@ -202,7 +202,7 @@ else:
 dt.to_csv(os.path.join(py_output_dir, "feature_engineering.csv"), index=False)
 
 
-# In[ ]:
+# In[8]:
 
 
 dt.head()
@@ -213,7 +213,7 @@ dt.head()
 # A number of feature names are also shortened, so their visual representation do not take too much screen space:
 # 
 
-# In[ ]:
+# In[9]:
 
 
 rename_map = {
@@ -242,7 +242,7 @@ else:
 dt.to_csv(os.path.join(py_output_dir, "feature_renaming.csv"), index=False)
 
 
-# In[ ]:
+# In[10]:
 
 
 dt.head()
@@ -252,7 +252,7 @@ dt.head()
 # 
 # We decided to remove rows from the dataset for which the mailing list data source is missing (i.e. 2000-2001).
 
-# In[ ]:
+# In[11]:
 
 
 if 'start' in dt.columns:
@@ -268,13 +268,13 @@ else:
     print("Skipped start parsing (column missing).")
 
 
-# In[ ]:
+# In[12]:
 
 
 dt.head()
 
 
-# In[ ]:
+# In[13]:
 
 
 dt.head()
@@ -282,7 +282,7 @@ dt.head()
 
 # With respect to data missing due to inactivity during a given time period, any measures of features (counts) related to commits should all be 0.
 
-# In[ ]:
+# In[14]:
 
 
 if dt.isna().any().any():
@@ -294,7 +294,7 @@ else:
 dt.to_csv(os.path.join(py_output_dir, "missing_data_handling.csv"), index=False)
 
 
-# In[ ]:
+# In[15]:
 
 
 dt.head()
@@ -304,7 +304,7 @@ dt.head()
 # 
 # To use start in causal analysis, we convert it to a unix timestamp. 
 
-# In[ ]:
+# In[16]:
 
 
 # start is already Unix-timestamp from the Missing Data Handling cell.
@@ -312,7 +312,7 @@ dt.head()
 print("start already in Unix seconds.")
 
 
-# In[ ]:
+# In[17]:
 
 
 dt.head()
@@ -320,7 +320,7 @@ dt.head()
 
 # ### 1-Time Lag Features
 
-# In[ ]:
+# In[18]:
 
 
 lag_cols = ["org_silo", "mis_link", "silence", "code_dev", "file",
@@ -338,7 +338,7 @@ def add_time_lag(cve_table):
         return pd.concat([current, future], axis=1)
 
 
-# In[ ]:
+# In[19]:
 
 
 if 'cve_id' in dt.columns and not any(c.endswith('2') for c in dt.columns if c not in ['activity_2']):
@@ -356,7 +356,7 @@ else:
 lag_dt.to_csv(os.path.join(py_output_dir, "time_lag_features.csv"), index=False)
 
 
-# In[ ]:
+# In[20]:
 
 
 lag_dt.columns
@@ -366,7 +366,7 @@ lag_dt.columns
 # 
 # We deleted CVEs (their associated rows) with 7 or fewer time periods.
 
-# In[ ]:
+# In[21]:
 
 
 if 'cve_id' in lag_dt.columns:
@@ -383,7 +383,7 @@ else:
 short_cves.to_csv(os.path.join(py_output_dir, "short_cves.csv"), index=False)
 
 
-# In[ ]:
+# In[22]:
 
 
 if 'cve_id' in lag_dt.columns and len(short_cves) > 0:
@@ -396,7 +396,7 @@ else:
 
 # ## Addressing Determinism and High Intercorrelation Among Features
 
-# In[ ]:
+# In[23]:
 
 
 cor_cols = ["org_silo", "mis_link", "silence", "code_dev", "file",
@@ -418,7 +418,7 @@ cor_matrix.to_csv(os.path.join(py_output_dir, "correlation_matrix.csv"), index=F
 
 # Due to high correlation, we perform 6 feature deletions (activity_0, activity_2, org_silo, org_silo2):
 
-# In[ ]:
+# In[24]:
 
 
 keep_cols = ["cve_id", "start", "mis_link", "silence", "code_dev", "file",
@@ -434,7 +434,7 @@ else:
     print("Skipped feature deletion (columns already removed).")
 
 
-# In[ ]:
+# In[25]:
 
 
 dt.head()
@@ -444,7 +444,7 @@ dt.head()
 # 
 # We then apply the non-paranormal distribution transformation to numerical variables, to reduce the risk of violating the normal distribution when drawing causal conclusions.
 
-# In[ ]:
+# In[26]:
 
 
 def npn(data):
@@ -489,7 +489,7 @@ lag_dt.to_csv(os.path.join(py_output_dir, "npn_transformed.csv"), index=False)
 # 
 # To represent the CVE Ids, we utilize indicator features. For every CVE ID, a new column is added to the table which can take values 0 or 1. The value is 1 if the row is associated to that CVE ID, or 0 otherwise.
 
-# In[ ]:
+# In[27]:
 
 
 if 'cve_id' in lag_dt.columns:
@@ -513,7 +513,7 @@ if binarize_cve_id is not None:
 
 # We can then remove the `cve_id` column, as the binary features represent the same information, and add the remaining columns to the analysis table:
 
-# In[ ]:
+# In[28]:
 
 
 if binarize_cve_id is not None:
@@ -532,7 +532,7 @@ else:
 binarized_lag_dt.to_csv(os.path.join(py_output_dir, "binarized_lag_dt.csv"), index=False)
 
 
-# In[ ]:
+# In[29]:
 
 
 dt.head()
@@ -543,7 +543,7 @@ dt.head()
 # An example of the randomization only showing the silence and nv-silence is shown below. In practice, for every column in `lag_dt` up to this point, we generated a replica column prefixed by `nv-`, including the binary features (which are then prefixed as `nv-b_`), but the replica columns have their values shuffled across the rows, hence the null (random) naming to them.
 # 
 
-# In[ ]:
+# In[30]:
 
 
 if not any(c.startswith("nv-") for c in lag_dt.columns):
@@ -567,7 +567,7 @@ else:
         nv_lag_dt[["silence", "nv-silence"]].head()
 
 
-# In[ ]:
+# In[31]:
 
 
 dt.head()
@@ -577,7 +577,7 @@ dt.head()
 # 
 # Introducing a null feature for all variables and features leads to too many features being introduced for causal search, causing heap memory errors in Tetrad. We preserve only a few of the nv binary indicator variables, as they lead to variable explosion and their pattern is easy to randomize. Position 138 includes all variables as null variables, plus five binary indicators as null variables. We consider this loss of null binary indicator features reasonable, as the randomization of a few blocks of values 1 or 0 will generally be equivalent. This in turn, allow us to perform more causal search runs, which we deem a fair trade-off. 
 
-# In[ ]:
+# In[32]:
 
 
 if nv_lag_dt.shape[1] > 138:
@@ -594,7 +594,7 @@ print(f"Converted nv_lag_dt and binarized_lag_dt to float.")
 nv_lag_dt.to_csv(os.path.join(py_output_dir, "nv_lag_dt_final.csv"), index=False)
 
 
-# In[ ]:
+# In[33]:
 
 
 print(nv_lag_dt)
@@ -607,7 +607,7 @@ print(nv_lag_dt)
 # We then set the output file configuration. 
 # 
 
-# In[ ]:
+# In[34]:
 
 
 # Output path configuration (for saving results later if needed)
@@ -625,7 +625,7 @@ output_folder_path = os.path.join(os.getcwd(), "null_search")
 # This is the BOSS Search. We found BOSS scaled better, allowing us to increase the number of bootstraps up to 1000. Observe also the knowledge box is not specified at this point: We do not impose any restrictions when observing the formation of edges at random. Our final conclusions are derived from BOSS. Note also that we bootstrap on BOSS with 100% of the dataset, while in FGES we do so with 90% of the dataset. We use 100% in BOSS, because the algorithm already has random initialization. 
 # 
 
-# In[ ]:
+# In[35]:
 
 
 # Set eval_boss = True to run, False to skip
@@ -669,7 +669,7 @@ if eval_boss:
 # The nodes contain all our variables and null features In the off_chance a feature does not have any edge to it, this table allow us to still show it on the graph, as it would not appear on the "edge list" table.
 # 
 
-# In[ ]:
+# In[36]:
 
 
 parsed_graph = graph.parse_graph_json(filepath)
@@ -681,7 +681,7 @@ parsed_graph["nodes"].to_csv(os.path.join(py_output_dir, "null_search_nodes.csv"
 # Next is the edgeset table output by Tetrad. This table contains all the edges. Because we are performing multiple executions, each with a sample of the full dataset (as we are using a "bootstrap" approach), the probabilities represented here are the "ensemble" of all edges formed on each execution. In this Notebook, the preserved ensemble was used.
 # 
 
-# In[ ]:
+# In[37]:
 
 
 parsed_graph["edgeset"].head()
@@ -692,7 +692,7 @@ parsed_graph["edgeset"].to_csv(os.path.join(py_output_dir, "null_search_edgeset.
 # Lastly, we can examine the counts of each type of edge formed on each subgraph via the edge_type_probabilities table. Since the edgeset table probability already sums the probabilities from this table for every node pair, this information is presented here only for qualitative inspection, but it is not currently used in the subsequent steps.
 # 
 
-# In[ ]:
+# In[38]:
 
 
 parsed_graph["edge_type_probabilities"].head()
@@ -705,7 +705,7 @@ parsed_graph["edge_type_probabilities"].to_csv(os.path.join(py_output_dir, "null
 # As noted, our interest is to derive a threshold for the final causal search, using the information of this bootstrapped null feature causal search between the actual variables, and the random features. By this randome dge definition, our first step is to subset the `edgeset`table  to contain only the edge pairs that include null variables. A sample is shown below of the table where at least one of the two nodes is nv:
 # 
 
-# In[ ]:
+# In[39]:
 
 
 is_node1_nv = parsed_graph["edgeset"]["node1_name"].str.contains("nv-", regex=False)
@@ -719,7 +719,7 @@ nv_edges.to_csv(os.path.join(py_output_dir, "nv_edges.csv"), index=False)
 # Next, we can derive a no_edge probability by subtracting 1 from the `probability` value. 
 # 
 
-# In[ ]:
+# In[40]:
 
 
 nv_edges["no_edge"] = 1 - nv_edges["probability"]
@@ -729,7 +729,7 @@ nv_edges.head()
 # Our goal then is to identify the first percentile value of the no edge probability, i.e. the 1st percentile NoEdge Frequency value (1PNEF):
 # 
 
-# In[ ]:
+# In[41]:
 
 
 if len(nv_edges) > 0:
@@ -758,7 +758,7 @@ with open(os.path.join(py_output_dir, "pnef_1.txt"), "w") as f:
 # Domain knowledge is used to prohibit causal links to form among features. Here, we only defined temporal causal link restrictions. I.e. it does not make sense for features at 1-time-lag (future) to cause features on the present time.
 # 
 
-# In[ ]:
+# In[42]:
 
 
 #knowledge_file_path = os.path.expanduser("~/Downloads/knowledge_2.txt")
@@ -769,7 +769,7 @@ knowledge_file_path = ("resources/knowledge_box.txt")
 # 
 # As before, we specify the graph output file. 
 
-# In[ ]:
+# In[43]:
 
 
 output_folder_path = os.path.join(os.getcwd(), "domain_binarized_search")
@@ -780,7 +780,7 @@ output_folder_path = os.path.join(os.getcwd(), "domain_binarized_search")
 # BOSS Causal Search:
 # 
 
-# In[ ]:
+# In[44]:
 
 
 # Set eval_boss_domain = True to run, False to skip
@@ -816,8 +816,24 @@ if eval_boss_domain:
 # ### Markov Check
 # 
 # We check whether the final causal graph fits the data
+# 
+# **How to Read the Markov Check**
+# 
+# The Markov check tests whether the causal graph fits the data. The graph makes predictions about which variables should be unrelated, and the Markov checker tests each prediction against the data.
+# 
+# **Summary line:** focus on two numbers:
+# - `num_tests_independent`: how many "these two things are unrelated" predictions the graph made.
+# - `fraction_dependent_independent`: the share of those predictions the data proved wrong. **Lower is better.**
+#   - Around 1% or less: the graph fits the data well (about 1% can be wrong just by chance).
+#   - A few percent: some predictions don't hold.
+#   - Much higher (e.g. 43%): the graph doesn't match the data.
+# 
+# **Table:** each row is one prediction:
+# - `fact`: the prediction. `A _||_ B` means "A and B are unrelated," and `A _||_ B | C` means "A and B are unrelated once you know C."
+# - `p_value`: below 0.01 means the data says they *are* related, so the prediction was wrong. Above 0.01 means the data agrees.
+# - `implied_independent`: `True` means it is an "unrelated" prediction.
 
-# In[ ]:
+# In[45]:
 
 
 test = independence.use_fisher_z(state["params"], alpha=0.01)
@@ -826,44 +842,31 @@ display(pd.Series(mc["summary"], name="value").to_frame())
 mc["results"].head()
 
 
-# ### How to Read the Markov Check
-# 
-# The Markov check tests whether the causal graph fits the data. The graph makes predictions about which variables should be unrelated, and the Markov checker tests each prediction against the data.
-# 
-# **Summary line:** focus on two numbers:
-# - `num_tests_independent`: how many "these two things are unrelated" predictions the graph made.
-# - `fraction_dependent_independent`: the share of those predictions the data proved wrong. **Lower is better.**
-#   - Around 1% or less: the graph fits the data well (about 1% can be wrong just by chance).
-#   - A few percent: some predictions don't hold.
-#   - Much higher (e.g. 43%): the graph doesn't match the data.
-# 
-# **Table:** each row is one prediction:
-# - `fact`: the prediction. `A _||_ B` means "A and B are unrelated," and `A _||_ B | C` means "A and B are unrelated once you know C."
-# - `p_value`: below 0.01 means the data says they *are* related, so the prediction was wrong. Above 0.01 means the data agrees.
-# - `implied_independent`: `True` means it is an "unrelated" prediction.
+# In[46]:
 
-# ### How to Read the Markov Check
-# 
-# The Markov check tests whether the causal graph fits the data. The graph makes predictions about which variables should be unrelated, and the Markov checker tests each prediction against the data.
-# 
-# **Summary line:** focus on two numbers:
-# - `num_tests_independent`: how many "these two things are unrelated" predictions the graph made.
-# - `fraction_dependent_independent`: the share of those predictions the data proved wrong. **Lower is better.**
-#   - Around 1% or less: the graph fits the data well (about 1% can be wrong just by chance).
-#   - A few percent: some predictions don't hold.
-#   - Much higher (e.g. 43%): the graph doesn't match the data.
-# 
-# **Table:** each row is one prediction:
-# - `fact`: the prediction. `A _||_ B` means "A and B are unrelated," and `A _||_ B | C` means "A and B are unrelated once you know C."
-# - `p_value`: below 0.01 means the data says they *are* related, so the prediction was wrong. Above 0.01 means the data agrees.
-# - `implied_independent`: `True` means it is an "unrelated" prediction.
+
+options = {
+    "default": {},
+    "fraction_resample=0.5": {"fraction_resample": 0.5},
+    "LOCAL_MARKOV": {"condition_set_type": "LOCAL_MARKOV"},
+    "find_smallest_subset": {"find_smallest_subset": True},
+    "knowledge": {"knowledge": state["knowledge"]},
+}
+
+rows = {}
+for name, kwargs in options.items():
+    mc = graph.markov_check(state["data"], state["params"], test, result["graph"], **kwargs)
+    rows[name] = mc["summary"]
+
+pd.DataFrame(rows).T
+
 
 # ## Applying 1PNEF Threshold
 # 
 # We load the final causal search, and then apply the 1PNEF threshold derived from the prior causal search here. A sample of the causal graph nodes and edges is shown below:
 # 
 
-# In[ ]:
+# In[47]:
 
 
 parsed_graph = graph.parse_graph_json(filepath)
@@ -883,7 +886,7 @@ parsed_graph["edge_type_probabilities"].to_csv(os.path.join(py_output_dir, "fina
 # 
 # Edges which may have been formed at random are filtered here:
 
-# In[ ]:
+# In[48]:
 
 
 edges = parsed_graph["edgeset"].copy()
@@ -899,7 +902,7 @@ edges_1pnef.to_csv(os.path.join(py_output_dir, "edges_1pnef.csv"), index=False)
 # With the final causal graph trimmed, we can now inspect it to draw conclusions from it. Causal graphs may form cycles, and also have undirected edges. We define a function to check for cycles here and use it below for inspection.
 # 
 
-# In[ ]:
+# In[49]:
 
 
 # colorBlindness::Blue2DarkRed12Steps (verified from R/palette.R in jianhong/colorBlindness)
@@ -951,7 +954,7 @@ def vis_igraph(nodes, edges, output_path, seed=1):
 # 
 # First, we can inspect the full causal graph.
 
-# In[ ]:
+# In[50]:
 
 
 cycles = graph.find_cycles_in_edgeset(edges_1pnef)
@@ -988,7 +991,7 @@ vis_igraph(nodes_n, edges, "causal_graph/boss_causal_graph_full.html")
 # ### Sub-Graphs of Effort Variables and Parents
 # 
 
-# In[ ]:
+# In[51]:
 
 
 nodes_of_interest = ["silence", "silence2", "mis_link", "mis_link2",
